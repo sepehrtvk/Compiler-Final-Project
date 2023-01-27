@@ -1,16 +1,23 @@
-# This is a sample Python script.
+from lexer import Lexer
+from parser import Parser
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+lexer = Lexer().build()
+filename = 'test.txt'
+file = open(filename)
+text_input = file.read()
+file.close()
+lexer.input(text_input)
+for tok in lexer:
+    print(tok)
+parser = Parser()
+parser.build().parse(text_input, lexer, False)
 
+# parser = yacc.yacc()
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+# while True:
+#     try:
+#         s = input('>> ')
+#     except EOFError:
+#         break
+#
+#     parser.build().parse(s, lexer, False)
