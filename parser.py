@@ -1,6 +1,7 @@
 from ply import yacc
 from lexer import Lexer
 from validation import Validation
+from colorama import Fore
 
 validate = Validation()
 
@@ -8,20 +9,24 @@ validate = Validation()
 class Parser:
     tokens = Lexer().tokens
 
+    variables = {}
+
     def __init__(self):
         pass
 
-    # def p_program(self, p):
-    #     "program : PROGRAM IDENTIFIER declarations compstatement"
-    #     print("start : program IDENTIFIER declarations compstatement")
+    def p_program(self, p):
+        "program : PROGRAM IDENTIFIER declarations compstatement"
+        print("program : PROGRAM IDENTIFIER declarations compstatement")
 
-    # def p_declarations_list(self, p):
-    #     "declarations : VAR declarationlist"
-    #     print("declarations : var declarationlist")
-    #
-    # def p_declarations_epsilon(self, p):
-    #     "declarations : "
-    #     print("declarations : ")
+    def p_declarations_list(self, p):
+        "declarations : VAR IDENTIFIER COLON type"
+        print("declarations : var", p[2], ":", p[4])
+        self.variables[p[2]] = 0
+        print(self.variables)
+
+    def p_declarations_epsilon(self, p):
+        "declarations : "
+        print("declarations : ")
 
     # def p_declarationlist_type(self, p):
     #     "declarationlist : identifierlist COLON type"
@@ -39,52 +44,74 @@ class Parser:
     #     "identifierlist : identifierlist COMMA IDENTIFIER"
     #     print("identifierlist : identifierlist COMMA identifier")
 
-    # def p_type_int(self, p):
-    #     "type : INT"
-    #     print("type : INT")
-    #
-    # def p_type_real(self, p):
-    #     "type : REAL"
-    #     print("type : REAL")
+    def p_type_int(self, p):
+        "type : INTEGER"
+        print("type : INTEGER")
+        p[0] = p[1]
 
-    # def p_compstatement(self, p):
-    #     "compstatement : BEGIN statementlist END"
-    #     print("compstatement : BEGIN statementlist END")
+    def p_type_real(self, p):
+        "type : REAL"
+        print("type : REAL")
+        p[0] = p[1]
 
-    # def p_statementlist(self, p):
-    #     "statementlist : statement"
-    #     print("statementlist : statement")
-    #
-    # def p_statementlist_list(self, p):
-    #     "statementlist : statementlist SCOLON statement"
-    #     print("statementlist : statementlist SCOLON statement")
-    #
+    def p_compstatement(self, p):
+        "compstatement : BEGIN statementlist END"
+        print("compstatement : BEGIN statement END")
+
+    def p_statementlist(self, p):
+        "statementlist : statement"
+        print("statementlist : statement")
+
+    def p_statementlist_list(self, p):
+        "statementlist : statementlist SCOLON statement"
+        print("statementlist : statementlist SCOLON statement")
+
 
     def p_statement_assignment(self, p):
         'statement : IDENTIFIER ASSIGNMENT expression'
         print("statement : IDENTIFIER ASSIGNMENT expression")
 
+        self.variables[p[1]] = p[3]
+        print(self.variables)
+
     def p_statement_expression(self, p):
         "statement : expression"
-        print("statement : expression")
+        print("statement : expression", p[1])
+        p[0] = p[1]
 
     def p_statement_if_else(self, p):
         "statement : IF expression THEN statement ELSE statement"
         print("statement : IF expression THEN statement ELSE statement")
+        print(p[0], p[1], p[2], p[3], p[4], p[5], p[6])
+
+        if bool(p[2]):
+            p[0] = p[4]
+        else:
+            p[0] = p[6]
+
+        print(p[0])
 
     def p_statement_if(self, p):
         "statement : IF expression THEN statement"
         print("statement : IF expression THEN statement")
 
+        if bool(p[2]):
+            p[0] = p[4]
+
     def p_statement_while(self, p):
         "statement : WHILE expression DO statement"
         print("statement : WHILE expression DO statement")
 
+        if bool(p[2]):
+            pass
+
     # def p_statement_compstatement(self, p):
     #     "statement : compstatement"
 
-    # "statement : PRINT LPAREN expression RPAREN"
-    # print("statement : PRINT LPAREN expression RPAREN")
+    def p_print(self, p):
+        "statement : PRINT LPAREN expression RPAREN"
+        print("statement : PRINT LPAREN expression RPAREN")
+        print(p[3])
 
     # def p_statement_switch(self, p):
     #     "statement : SWITCH expression OF cases defaultcase DONE"
@@ -108,7 +135,7 @@ class Parser:
     #     "constantlist : constantlist COMMA constant"
 
     # def p_constant_real(self, p):
-    #     "constant : REAL"
+    #     "constant : FLOAT"
     #
     # def p_constant_integer(self, p):
     #     "constant : INT"
@@ -119,24 +146,27 @@ class Parser:
         p[0] = p[1]
 
     def p_expression_real(self, p):
-        "expression : REAL"
-        print("expression : REAL")
+        "expression : FLOAT"
+        print("expression : FLOAT")
         p[0] = p[1]
 
     def p_expression_identifier(self, p):
         "expression : IDENTIFIER"
         print("expression : IDENTIFIER")
-        p[0] = p[1]
+        try:
+            p[0] = self.variables[p[1]]
+        except LookupError:
+            print(Fore.RED, p[1], 'is not declared.')
 
     def p_expression_sum(self, p):
         'expression : expression PLUS expression'
         print("expression : expression PLUS expression")
 
         if not validate.check_operands_type(p):
-            return
+            return print(Fore.RED + "ERROR: SUM: operands types are not int or float")
 
-        p[0] = (p[2], p[1], p[3])
-        print(p[0], ":", p[1], p[2], p[3])
+        p[0] = p[1] + p[3]
+        print(p[0], "=", p[1], p[2], p[3])
 
     # def run(self, p):
     #     global env
@@ -164,38 +194,56 @@ class Parser:
         "expression : expression MINUS expression"
         print("expression : expression MINUS expression")
 
+        p[0] = p[1] - p[3]
+        print(p[0], "=", p[1], p[2], p[3])
+
     def p_expression_cross(self, p):
         "expression : expression MULTIPLY expression"
         print("expression : expression MULTIPLY expression")
+
+        if (type(p[1]) == int or type(p[1]) == float) and (type(p[3]) == int or type(p[3]) == float):
+            p[0] = p[1] * p[3]
+            print(p[0], "=", p[1], p[2], p[3])
+            return
+
+        return print(Fore.RED, 'operands are not in type int or float')
 
     def p_expression_div(self, p):
         "expression : expression DIV expression"
         print("expression : expression DIV expression")
 
+        p[0] = p[1] / p[3]
+        print(p[0], "=", p[1], p[2], p[3])
+
     def p_expression_uminus(self, p):
-        "expression : MINUS expression"
+        "expression : MINUS expression %prec UMINUS"
         print("expression : MINUS expression")
+
+        p[0] = -p[2]
 
     def p_expression_mod(self, p):
         "expression : expression MOD expression"
         print("expression : expression MOD expression")
+
+        if type(p[1]) == int and type(p[3]) == int:
+            p[0] = p[1] % p[3]
 
     def p_expression_lt(self, p):
         "expression : expression LT expression"
         print("expression : expression LT expression")
 
         if not ((type(p[1]) == int or type(p[1]) == float) and (type(p[3]) == int or type(p[3]) == float)):
-            return print("Can only operate comparison on integers and floats")
+            return print(Fore.RED, "Can only operate comparison on integers and floats")
 
         p[0] = p[1] < p[3]
-
+        print(p[0], "=", p[1], p[2], p[3])
 
     def p_expression_eq(self, p):
         "expression : expression EQ expression"
         print("expression : expression EQ expression")
 
         if not ((type(p[1]) == int or type(p[1]) == float) and (type(p[3]) == int or type(p[3]) == float)):
-            return print("Can only operate comparison on integers and floats")
+            return print(Fore.RED, "Can only operate comparison on integers and floats")
 
         p[0] = p[1] == p[3]
 
@@ -204,16 +252,17 @@ class Parser:
         print("expression : expression GT expression")
 
         if not ((type(p[1]) == int or type(p[1]) == float) and (type(p[3]) == int or type(p[3]) == float)):
-            return print("Can only operate comparison on integers and floats")
+            return print(Fore.RED, "Can only operate comparison on integers and floats")
 
         p[0] = p[1] > p[3]
+        print(p[0], ":", p[1], p[2], p[3])
 
     def p_expression_neq(self, p):
         "expression : expression NEQ expression"
         print("expression : expression NEQ expression")
 
         if not ((type(p[1]) == int or type(p[1]) == float) and (type(p[3]) == int or type(p[3]) == float)):
-            return print("Can only operate comparison on integers and floats")
+            return print(Fore.RED, "Can only operate comparison on integers and floats")
 
         p[0] = p[1] != p[3]
 
@@ -222,7 +271,7 @@ class Parser:
         print("expression : expression LTE expression")
 
         if not ((type(p[1]) == int or type(p[1]) == float) and (type(p[3]) == int or type(p[3]) == float)):
-            return print("Can only operate comparison on integers and floats")
+            return print(Fore.RED, "Can only operate comparison on integers and floats")
 
         p[0] = p[1] <= p[3]
 
@@ -231,7 +280,7 @@ class Parser:
         print("expression : expression GTE expression")
 
         if not ((type(p[1]) == int or type(p[1]) == float) and (type(p[3]) == int or type(p[3]) == float)):
-            return print("Can only operate comparison on integers and floats")
+            return print(Fore.RED, "Can only operate comparison on integers and floats")
 
         p[0] = p[1] >= p[3]
 
@@ -239,19 +288,22 @@ class Parser:
         "expression : expression AND expression"
         print("expression : expression AND expression")
         if not validate.check_operands_boolean(p):
-            return print("Can only operate comparison on booleans")
+            return print(Fore.RED, "Can only operate comparison on booleans")
 
+        p[0] = p[1] and p[3]
 
     def p_expression_or(self, p):
         "expression : expression OR expression"
         print("expression : expression OR expression")
         if not validate.check_operands_boolean(p):
-            return print("Can only operate comparison on booleans")
+            return print(Fore.RED, "Can only operate comparison on booleans")
+
+        p[0] = p[1] or p[3]
 
     def p_expression_not(self, p):
         "expression : NOT expression"
-        if type(p[2]) != bool:
-            return print("Can only operate logical not on booleans")
+        if not validate.check_is_bool(p):
+            return print(Fore.RED, "Can only operate logical not on booleans")
 
         p[0] = not p[2]
 
@@ -260,7 +312,6 @@ class Parser:
         print("expression : LPAREN expression RPAREN")
 
         p[0] = p[2]
-
 
     # def p_stmt_if1(self, p):
     #     "stmt : IF LRB exp RRB stmt elseiflist %prec if1"
@@ -276,13 +327,14 @@ class Parser:
     #
 
     def p_error(self, p):
-        print(p.value)
+        print('p.value', p.value)
         raise Exception('Parsing Error: Invalid grammar at', p)
 
     precedence = (
         ('left', 'NOT'),
         ('left', 'COMMA'),
-        ('right', 'ASSIGNMENT'),
+        # ('right', 'ASSIGNMENT'),
+        ('right', 'UMINUS'),
         ('left', 'OR'),
         ('left', 'AND'),
         ('left', 'EQ', 'NEQ'),

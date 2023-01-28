@@ -35,10 +35,13 @@ class Lexer:
         'and': 'AND',
         'or': 'OR',
         'not': 'NOT',
+        'int': 'INTEGER',
+        'real': 'REAL',
+        'float': 'FLOAT',
     }
 
     tokens = ['LPAREN', 'RPAREN', 'LT', 'GT', 'EQ', 'NEQ', 'GTE', 'LTE', 'PLUS', 'MINUS', 'MULTIPLY', 'DIV',
-              'ASSIGNMENT', 'SCOLON', 'COLON', 'COMMA', 'PERIOD', 'IDENTIFIER', 'TYPE', 'INT', 'REAL'] + list(
+              'ASSIGNMENT', 'SCOLON', 'COLON', 'COMMA', 'PERIOD', 'IDENTIFIER', 'TYPE', 'INT'] + list(
         reserved.values())
 
     # Tokens
@@ -49,22 +52,31 @@ class Lexer:
     t_RPAREN = r'\)'
     # t_TRUE = r'true'
     # t_FALSE = r'false'
-    t_LT = r'\<'
-    t_GT = r'\>'
-    t_EQ = r'\='
+    t_LT = r'<'
+    t_GT = r'>'
+    t_EQ = r'='
     t_NEQ = r'<>'
     t_GTE = r'>='
     t_LTE = r'<='
     t_PLUS = r'\+'
-    t_MINUS = r'\-'
+    t_MINUS = r'-'
     t_MULTIPLY = r'\*'
     t_DIV = r'\/'
     t_ASSIGNMENT = r':='
-    t_PRINT = r'print'
-    t_IDENTIFIER = r'[a-zA-Z_][a-zA-Z0-9_]*'
+    # t_PRINT = r'print'
+    t_SCOLON = r';'
+    t_COLON = r':'
+    t_INTEGER = r'int'
+    t_REAL = r'real'
 
     # ignored characters
     t_ignore = " \t"
+
+    # def t_TYPE(self, t):
+    #     r'(int|REAL)'
+    #     if t.value in reserved:
+    #         t.type = reserved[t.value]
+    #     return t
 
     def t_FLOAT(self, t):
         r'\d+\.\d+'
@@ -76,25 +88,31 @@ class Lexer:
         t.value = int(t.value)
         return t
 
-    def t_ID(self, t):
-        r'[a-zA-Z_][a-zA-Z_0-9]*'
+    def t_PRINT(self,  t):
+        r'print'
+        if t.value in reserved:
+            t.type = reserved[t.value]
+        return t
+
+    def t_IDENTIFIER(self, t):
+        r'[a-zA-Z_][a-zA-Z_0-9_]*'
+        if t.value in reserved:
+            t.type = reserved[t.value]
         return t
 
     def t_TRUE(self, t):
-        r'true'
+        r'True'
         return t
 
     def t_FALSE(self, t):
-        r'false'
+        r'False'
         return t
 
-    # def t_FLOATNUMBER(self, t):
-    #     r'[+-]?([0-9]{0,9}[.])[0-9]+'
-    #     return t
-    #
-    # def t_INTEGERNUMBER(self, t):
-    #     r'[-|+]?(\d+)'
-    #     return t
+    def t_IF(self, t):
+        r'if'
+        if t.value in reserved:
+            t.type = reserved[t.value]
+        return t
 
     def t_newline(self, t):
         r'\n+'

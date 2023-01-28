@@ -11,13 +11,3 @@ for tok in lexer:
     print(tok)
 parser = Parser()
 parser.build().parse(text_input, lexer, False)
-
-# parser = yacc.yacc()
-
-# while True:
-#     try:
-#         s = input('>> ')
-#     except EOFError:
-#         break
-#
-#     parser.build().parse(s, lexer, False)
