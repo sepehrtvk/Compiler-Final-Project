@@ -66,7 +66,6 @@ class Parser:
         "statementlist : statementlist SCOLON statement"
         print("statementlist : statementlist SCOLON statement")
 
-
     def p_statement_assignment(self, p):
         'statement : IDENTIFIER ASSIGNMENT expression'
         print("statement : IDENTIFIER ASSIGNMENT expression")
@@ -92,11 +91,14 @@ class Parser:
         print(p[0])
 
     def p_statement_if(self, p):
-        "statement : IF expression THEN statement"
+        "statement : IF expression THEN statement %prec IF"
         print("statement : IF expression THEN statement")
+        print(p[0], p[1], p[2], p[3], p[4])
 
         if bool(p[2]):
             p[0] = p[4]
+
+        print(p[0])
 
     def p_statement_while(self, p):
         "statement : WHILE expression DO statement"
@@ -194,6 +196,9 @@ class Parser:
         "expression : expression MINUS expression"
         print("expression : expression MINUS expression")
 
+        if not validate.check_operands_type(p):
+            return print(Fore.RED + "ERROR: MINUS: operands types are not int or float")
+
         p[0] = p[1] - p[3]
         print(p[0], "=", p[1], p[2], p[3])
 
@@ -206,14 +211,18 @@ class Parser:
             print(p[0], "=", p[1], p[2], p[3])
             return
 
-        return print(Fore.RED, 'operands are not in type int or float')
+        return print(Fore.RED + "ERROR: CROSS: operands types are not int or float")
 
     def p_expression_div(self, p):
         "expression : expression DIV expression"
         print("expression : expression DIV expression")
 
-        p[0] = p[1] / p[3]
-        print(p[0], "=", p[1], p[2], p[3])
+        if (type(p[1]) == int or type(p[1]) == float) and (type(p[3]) == int or type(p[3]) == float):
+            p[0] = p[1] / p[3]
+            print(p[0], "=", p[1], p[2], p[3])
+            return
+
+        return print(Fore.RED + "ERROR: DIVIDE: operands types are not int or float")
 
     def p_expression_uminus(self, p):
         "expression : MINUS expression %prec UMINUS"
@@ -227,13 +236,17 @@ class Parser:
 
         if type(p[1]) == int and type(p[3]) == int:
             p[0] = p[1] % p[3]
+            print(p[0], "=", p[1], p[2], p[3])
+            return
+
+        return print(Fore.RED + "ERROR: MOD: operands types are not int")
 
     def p_expression_lt(self, p):
         "expression : expression LT expression"
         print("expression : expression LT expression")
 
         if not ((type(p[1]) == int or type(p[1]) == float) and (type(p[3]) == int or type(p[3]) == float)):
-            return print(Fore.RED, "Can only operate comparison on integers and floats")
+            return print(Fore.RED + "ERROR: LESS_THAN: operands types are not int or float")
 
         p[0] = p[1] < p[3]
         print(p[0], "=", p[1], p[2], p[3])
@@ -243,7 +256,7 @@ class Parser:
         print("expression : expression EQ expression")
 
         if not ((type(p[1]) == int or type(p[1]) == float) and (type(p[3]) == int or type(p[3]) == float)):
-            return print(Fore.RED, "Can only operate comparison on integers and floats")
+            return print(Fore.RED + "ERROR: EQUAL: operands types are not int or float")
 
         p[0] = p[1] == p[3]
 
@@ -252,7 +265,7 @@ class Parser:
         print("expression : expression GT expression")
 
         if not ((type(p[1]) == int or type(p[1]) == float) and (type(p[3]) == int or type(p[3]) == float)):
-            return print(Fore.RED, "Can only operate comparison on integers and floats")
+            return print(Fore.RED + "ERROR: GREATER_THAN: operands types are not int or float")
 
         p[0] = p[1] > p[3]
         print(p[0], ":", p[1], p[2], p[3])
@@ -262,7 +275,7 @@ class Parser:
         print("expression : expression NEQ expression")
 
         if not ((type(p[1]) == int or type(p[1]) == float) and (type(p[3]) == int or type(p[3]) == float)):
-            return print(Fore.RED, "Can only operate comparison on integers and floats")
+            return print(Fore.RED + "ERROR: NOT_EQUAL: operands types are not int or float")
 
         p[0] = p[1] != p[3]
 
@@ -271,7 +284,7 @@ class Parser:
         print("expression : expression LTE expression")
 
         if not ((type(p[1]) == int or type(p[1]) == float) and (type(p[3]) == int or type(p[3]) == float)):
-            return print(Fore.RED, "Can only operate comparison on integers and floats")
+            return print(Fore.RED + "ERROR: LESS_THAN_EQ: operands types are not int or float")
 
         p[0] = p[1] <= p[3]
 
@@ -280,7 +293,7 @@ class Parser:
         print("expression : expression GTE expression")
 
         if not ((type(p[1]) == int or type(p[1]) == float) and (type(p[3]) == int or type(p[3]) == float)):
-            return print(Fore.RED, "Can only operate comparison on integers and floats")
+            return print(Fore.RED + "ERROR: GREATER_THAN_EQ: operands types are not int or float")
 
         p[0] = p[1] >= p[3]
 
@@ -288,7 +301,7 @@ class Parser:
         "expression : expression AND expression"
         print("expression : expression AND expression")
         if not validate.check_operands_boolean(p):
-            return print(Fore.RED, "Can only operate comparison on booleans")
+            return print(Fore.RED + "ERROR: AND: operands types are not bool")
 
         p[0] = p[1] and p[3]
 
@@ -296,14 +309,14 @@ class Parser:
         "expression : expression OR expression"
         print("expression : expression OR expression")
         if not validate.check_operands_boolean(p):
-            return print(Fore.RED, "Can only operate comparison on booleans")
+            return print(Fore.RED + "ERROR: OR: operands types are not bool")
 
         p[0] = p[1] or p[3]
 
     def p_expression_not(self, p):
         "expression : NOT expression"
         if not validate.check_is_bool(p):
-            return print(Fore.RED, "Can only operate logical not on booleans")
+            return print(Fore.RED + "ERROR: NOT: operands types are not bool")
 
         p[0] = not p[2]
 
@@ -313,19 +326,6 @@ class Parser:
 
         p[0] = p[2]
 
-    # def p_stmt_if1(self, p):
-    #     "stmt : IF LRB exp RRB stmt elseiflist %prec if1"
-    #     print("stmt : IF LRB exp RRB stmt elseiflist %prec if1")
-    #
-    # def p_stmt_if2(self, p):
-    #     "stmt : IF LRB exp RRB stmt elseiflist ELSE stmt"
-    #     print("stmt : IF LRB exp RRB stmt elseiflist ELSE stmt")
-    #
-    # def p_elseiflist_epsilon(self, p):
-    #     "elseiflist : %prec eliflist3"
-    #     print("elseiflist : ")
-    #
-
     def p_error(self, p):
         print('p.value', p.value)
         raise Exception('Parsing Error: Invalid grammar at', p)
@@ -333,8 +333,7 @@ class Parser:
     precedence = (
         ('left', 'NOT'),
         ('left', 'COMMA'),
-        # ('right', 'ASSIGNMENT'),
-        ('right', 'UMINUS'),
+        ('right', 'ASSIGNMENT'),
         ('left', 'OR'),
         ('left', 'AND'),
         ('left', 'EQ', 'NEQ'),
@@ -342,7 +341,9 @@ class Parser:
         ('left', 'LT', 'LTE'),
         ('left', 'PLUS', 'MINUS'),
         ('left', 'MULTIPLY', 'DIV', 'MOD'),
-        ('right', 'IF', 'THEN', 'ELSE')
+        ('right', 'UMINUS'),
+        ('right', 'IF'),
+        ('left', 'ELSE')
     )
 
     def build(self, **kwargs):
